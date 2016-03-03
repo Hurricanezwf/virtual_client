@@ -1,0 +1,7 @@
+*.o
+*.swp
+logs/
+Makefile
+Makefile.in
+virtual_client
+.deps/
