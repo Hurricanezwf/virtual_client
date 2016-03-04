@@ -1,4 +1,5 @@
 #include "http_listener.hpp"
+#include "http_msg_handler.hpp"
 #include "common/http_request_parser.hpp"
 #include "main/virtual_client_fwd.hpp"
 #include "main/virtual_client.hpp"
@@ -49,20 +50,14 @@ bool http_listener_t::on_read(const network::tcp_socket_ptr& s, char* data, size
         boost::property_tree::ptree pt;
         std::stringstream stream(req.m_content);
         boost::property_tree::json_parser::read_json<boost::property_tree::ptree>(stream, pt);
-        std::string guid = pt.get<std::string>("guid");
-        std::string id   = pt.get<std::string>("id");
-        //std::string no   = pt.get<std::string>("no");
-        log_warn("guid=%s, id=%s", guid.c_str(), id.c_str());
+        http_msg_handler_t::handle_http_msg(pt);
     }
     catch (boost::property_tree::ptree_error& ec)
     {
         log_error("read json error! Message:%s", ec.what());
-        msg = "Server Internal Error";
+        msg = "Server Internal Error!\r\n";
+        reply_http_msg(msg);
     }
-
-    // send reply whatever happened
-    msg.append("\r\n");
-    reply_http_msg(msg);
 
     return true;
 }

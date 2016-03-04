@@ -1,5 +1,6 @@
 #include "virtual_client.hpp"
 #include "virtual_client_fwd.hpp"
+#include "http/http_msg_handler.hpp"
 
 #include <boost/property_tree/ini_parser.hpp>
 
@@ -54,6 +55,14 @@ bool virtual_client_t::on_init_server()
         return false;
     }
 
+    // http msg handler
+    if (!http_msg_handler_t::init_msg_handler())
+    {
+        COMMON_ASSERT(false, "init http msg handler failed!");
+        return false;
+    }
+    log_info("init http msg handler success!");
+
     // network
     if (!m_network.init(4))
     {
@@ -92,14 +101,26 @@ void virtual_client_t::on_run_server()
     log_info("virtual client running...");
 }
 
-bool virtual_client_t::send_msg(const network::tcp_socket_ptr& s, const network::msg_buf_ptr& buf)
+
+bool virtual_client_t::connect_to_login()
 {
-    if (NULL == s)
-    {
-        return false;
-    }
+    return m_network.connect_to(env::cfg->connect_to_login.ip.c_str(), env::cfg->connect_to_login.port, &m_login_connector);
+}
 
-    m_network.send_msg(s, buf);
+void virtual_client_t::disconnect_with_login()
+{
+    m_network.close_socket(m_login_connector.get_socket());
+    log_debug("virtual client disconnect with login");
+}
 
-    return true;
+
+void virtual_client_t::network_send_msg(const network::tcp_socket_ptr& s, const network::msg_buf_ptr& buf, bool is_sync)
+{
+    m_network.post_send_msg(s, buf, is_sync);
+}
+
+
+void virtual_client_t::send_msg_to_http(const std::string& msg)
+{
+    m_http_listener.reply_http_msg(msg); 
 }
