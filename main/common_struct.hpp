@@ -5,6 +5,15 @@
 
 #include <string>
 
+// enum ================================================================
+// virtual_client与服务器的连接状态
+enum connect_state_em : uint8_t
+{
+    connect_state_idle = 0,
+    connect_state_login_connected = 1,
+    connect_state_gate_connected = 1 << 1,
+};
+
 // struct ===============================================================
 struct address_s
 {

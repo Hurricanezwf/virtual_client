@@ -1,6 +1,8 @@
 #include "virtual_client.hpp"
 #include "virtual_client_fwd.hpp"
 #include "http/http_msg_handler.hpp"
+#include "login/login_msg_handler.hpp"
+#include "gate/gate_msg_handler.hpp"
 
 #include <boost/property_tree/ini_parser.hpp>
 
@@ -9,7 +11,11 @@ USING_NS_COMMON;
 
 static const std::string config_ini_path("./config.ini");
 
-virtual_client_t::virtual_client_t()
+virtual_client_t::virtual_client_t() : m_connect_state(connect_state_idle)
+                                     , m_guid("")
+                                     , m_uid(0)
+                                     , m_gate_ip("")
+                                     , m_gate_port(0)
 {
 }
 
@@ -63,6 +69,22 @@ bool virtual_client_t::on_init_server()
     }
     log_info("init http msg handler success!");
 
+    // login_msg_handler
+    if (!login_msg_handler_t::init_msg_handler())
+    {
+        COMMON_ASSERT(false, "init login_msg handler failed!");
+        return false;
+    }
+    log_info("init login msg handler success!");
+
+    // gate_msg_handler
+    if (!gate_msg_handler_t::init_msg_handler())
+    {
+        COMMON_ASSERT(false, "init gate msg handler failed!");
+        return false;
+    }
+    log_info("init gate msg handler success!");
+
     // network
     if (!m_network.init(4))
     {
@@ -104,13 +126,66 @@ void virtual_client_t::on_run_server()
 
 bool virtual_client_t::connect_to_login()
 {
-    return m_network.connect_to(env::cfg->connect_to_login.ip.c_str(), env::cfg->connect_to_login.port, &m_login_connector);
+    if (is_connected_with_login())
+    {
+        log_warn("virtual client had been connected with login!");
+        disconnect_with_login();
+    }
+
+    bool res = m_network.connect_to(env::cfg->connect_to_login.ip.c_str(), env::cfg->connect_to_login.port, &m_login_connector, false);
+    if (true == res)
+    {
+        m_connect_state |= connect_state_login_connected;
+        log_debug("vitual client connect to login success!");
+        return true;
+    }
+
+    log_error("virtual client connect to login failed!"); 
+    return false;
 }
 
 void virtual_client_t::disconnect_with_login()
 {
-    m_network.close_socket(m_login_connector.get_socket());
+    m_network.close_connect(env::cfg->connect_to_login.port,  m_login_connector.get_socket());
+    m_connect_state &= (!connect_state_login_connected);
     log_debug("virtual client disconnect with login");
+}
+
+bool virtual_client_t::is_connected_with_login()
+{
+    return (m_connect_state & connect_state_login_connected);
+}
+
+bool virtual_client_t::connect_to_gate(std::string& gate_ip, uint32_t gate_port)
+{
+     if (is_connected_with_gate())
+     {
+         disconnect_with_gate();
+         log_warn("virtual client had been connected with gate!");
+     }
+
+     bool res = m_network.connect_to(gate_ip, gate_port, &m_gate_connector, false);
+     if (true == res)
+     {
+         m_connect_state |= connect_state_gate_connected;
+         log_debug("virtual client connect to gate success!");
+         return true;
+     }
+
+     log_error("virtual client connect to gate failed!");
+     return false;
+}
+
+void virtual_client_t::disconnect_with_gate()
+{
+     m_network.close_connect(m_gate_port, m_gate_connector.get_socket());
+     m_connect_state &= (!connect_state_gate_connected);
+     log_debug("virtual client disconnect with gate");
+}
+
+bool virtual_client_t::is_connected_with_gate()
+{
+    return (m_connect_state & connect_state_gate_connected);
 }
 
 

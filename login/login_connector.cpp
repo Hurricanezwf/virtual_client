@@ -2,7 +2,7 @@
 #include "protobuf.hpp"
 #include "main/virtual_client_fwd.hpp"
 #include "main/virtual_client.hpp"
-
+#include "login/login_msg_handler.hpp"
 
 USING_NS_NETWORK;
 USING_NS_COMMON;
@@ -24,7 +24,7 @@ void login_connector_t::on_new_msg(const tcp_socket_ptr& s, const message_t& msg
         log_error("s != m_login_socket");
         return;
     }
-    //env::server->get_ios().post(boost::bind(&gate_server_t::on_login_msg, env::server, msg.head.cmd, msg.body));
+    env::server->get_ios().post(boost::bind(&login_msg_handler_t::handle_server_msg, msg.head.cmd, msg.body));
 }
 
 void login_connector_t::on_close(const tcp_socket_ptr& s)

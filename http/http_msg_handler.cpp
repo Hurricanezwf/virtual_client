@@ -3,6 +3,11 @@
 #include "main/virtual_client.hpp"
 #include "common/common_fwd.hpp"
 #include "common/log.hpp"
+#include "common/channel_enum.hpp"
+#include "protos/op_cmd.hpp"
+#include "protos/client.pb.h"
+#include "protos/common.pb.h"
+
 
 http_msg_handler_t::http_msg_map http_msg_handler_t::m_register; 
 
@@ -39,29 +44,26 @@ void http_msg_handler_t::handle_http_msg(const boost::property_tree::ptree& pt)
 }
 
 
-// msg handler =================================================================
+// client->login  =================================================================
 void http_msg_handler_t::handle_cl_login_request(const boost::property_tree::ptree& pt)
 {
     std::string guid = pt.get<std::string>("guid");
 
     std::string reply;
     // connect to login
-    if (!env::server->connect_to_login())
+    if (false == env::server->connect_to_login())
     {
         reply = "virtual client connect to login_server failed! \r\n"; 
         env::server->send_msg_to_http(reply);
         return;
     }
-    else
-    {
-        log_debug("virtual client connect to login_server success!");
-    }
 
     // send cl_login_request to login
+    proto::client::cl_login_request login_req;
+    login_req.set_ch_type((uint32_t)channel::CHANNEL_TYPE_TEST);
+    login_req.mutable_general()->set_session_id(guid);
+    env::server->send_msg_to_login(op_cmd::cl_login_request, login_req);
 }
-
-
-
 
 
 // msg register =================================================================

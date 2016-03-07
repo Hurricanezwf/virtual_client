@@ -32,6 +32,9 @@ virtual_client_SOURCES = $(top_srcdir)/protos/common.pb.cc \
 						main/virtual_client.cpp \
 						http/http_listener.cpp \
 						http/http_msg_handler.cpp \
-						login/login_connector.cpp
+						login/login_connector.cpp \
+						login/login_msg_handler.cpp \
+						gate/gate_connector.cpp \
+						gate/gate_msg_handler.cpp
 
 virtual_clientdir=$(prefix)/conf/
