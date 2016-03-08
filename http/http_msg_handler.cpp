@@ -14,7 +14,8 @@ http_msg_handler_t::http_msg_map http_msg_handler_t::m_register;
 bool http_msg_handler_t::init_msg_handler()
 {
     bool ret = true;
-    ret &= regist_msg_handler("cl_login_request", handle_cl_login_request);
+    ret &= regist_msg_handler("cl_login_request",       handle_cl_login_request);
+    ret &= regist_msg_handler("ca_logout_request",      handle_ca_logout_request);
 
     return ret;
 }
@@ -29,7 +30,7 @@ void http_msg_handler_t::handle_http_msg(const boost::property_tree::ptree& pt)
         {
             log_error("no cmd[%s]'s handler founded!", cmd.c_str()); 
             std::string reply("Server Internal Error!");
-            env::server->send_msg_to_http(reply);
+            env::server->send_err_to_http(reply);
             return;
         }
 
@@ -39,7 +40,7 @@ void http_msg_handler_t::handle_http_msg(const boost::property_tree::ptree& pt)
     {
         log_error("resolve property_tree error! Message:%s", ec.what()); 
         std::string reply = std::string(ec.what());
-        env::server->send_msg_to_http(reply);
+        env::server->send_err_to_http(reply);
     }
 }
 
@@ -54,7 +55,7 @@ void http_msg_handler_t::handle_cl_login_request(const boost::property_tree::ptr
     if (false == env::server->connect_to_login())
     {
         reply = "virtual client connect to login_server failed! \r\n"; 
-        env::server->send_msg_to_http(reply);
+        env::server->send_err_to_http(reply);
         return;
     }
 
@@ -63,6 +64,15 @@ void http_msg_handler_t::handle_cl_login_request(const boost::property_tree::ptr
     login_req.set_ch_type((uint32_t)channel::CHANNEL_TYPE_TEST);
     login_req.mutable_general()->set_session_id(guid);
     env::server->send_msg_to_login(op_cmd::cl_login_request, login_req);
+}
+
+
+// client->gate =================================================================
+void http_msg_handler_t::handle_ca_logout_request(const boost::property_tree::ptree& pt)
+{
+    env::server->disconnect_with_gate();
+
+    env::server->send_reply_to_http("", "");
 }
 
 

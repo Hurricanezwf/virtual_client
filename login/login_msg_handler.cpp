@@ -26,8 +26,8 @@ bool login_msg_handler_t::handle_lc_login_reply(const msg_buf_ptr& msg_buf)
     if (msg.reply_code() != 0)
     {
         log_error("client login to login_server failed! ErrorCode=%d", msg.reply_code());
-        std::string reply("virtual client login to login_server failed! ErrorCode=%d", msg.reply_code());
-        env::server->send_msg_to_http(reply);
+        std::string reply("virtual client login to login_server failed!");
+        env::server->send_err_to_http(reply);
         return false;
     }
     
@@ -39,7 +39,7 @@ bool login_msg_handler_t::handle_lc_login_reply(const msg_buf_ptr& msg_buf)
     if (false == env::server->connect_to_gate(gate_ip, gate_port))
     {
         std::string reply("vitual client connect to gate with socket failed!"); 
-        env::server->send_msg_to_http(reply);
+        env::server->send_err_to_http(reply);
         return false;
     }
     env::server->set_guid(guid);

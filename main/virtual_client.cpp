@@ -146,7 +146,7 @@ bool virtual_client_t::connect_to_login()
 
 void virtual_client_t::disconnect_with_login()
 {
-    m_network.close_connect(env::cfg->connect_to_login.port,  m_login_connector.get_socket());
+    m_network.close_connect(env::cfg->connect_to_login.port);
     m_connect_state &= (!connect_state_login_connected);
     log_debug("virtual client disconnect with login");
 }
@@ -178,9 +178,10 @@ bool virtual_client_t::connect_to_gate(std::string& gate_ip, uint32_t gate_port)
 
 void virtual_client_t::disconnect_with_gate()
 {
-     m_network.close_connect(m_gate_port, m_gate_connector.get_socket());
+     //m_network.close_connect(m_gate_port, m_gate_connector.get_socket());
+     m_network.close_connect(m_gate_port);
      m_connect_state &= (!connect_state_gate_connected);
-     log_debug("virtual client disconnect with gate");
+     log_debug("virtual client disconnect with gate. port=%d", m_gate_port);
 }
 
 bool virtual_client_t::is_connected_with_gate()
@@ -195,7 +196,27 @@ void virtual_client_t::network_send_msg(const network::tcp_socket_ptr& s, const 
 }
 
 
-void virtual_client_t::send_msg_to_http(const std::string& msg)
+void virtual_client_t::send_reply_to_http(const std::string& cmd, const std::string& data)
 {
+    char buf[1024];
+    if (data.empty())
+    {
+        sprintf(buf, "{\"reply_code\":0, \"cmd\":\"%s\"}", cmd.c_str());
+    }
+    else
+    {
+        sprintf(buf, "{\"reply_code\":0, \"cmd\":\"%s\", \"data\":\"%s\"}", cmd.c_str(), data.c_str());
+    }
+
+    std::string msg(buf);
+    m_http_listener.reply_http_msg(msg);
+}
+
+void virtual_client_t::send_err_to_http(const std::string& err_msg)
+{
+    char buf[1024];
+    sprintf(buf, "{\"reply_code\":1,\"msg\":\"%s\"}", err_msg.c_str());
+
+    std::string msg(buf);
     m_http_listener.reply_http_msg(msg); 
 }

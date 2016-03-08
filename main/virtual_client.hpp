@@ -36,7 +36,9 @@ public:
     bool is_connected_with_gate();
     
     void network_send_msg(const network::tcp_socket_ptr& s, const network::msg_buf_ptr& buf, bool is_sync = false);
-    void send_msg_to_http(const std::string& msg);
+
+    void send_reply_to_http(const std::string& cmd, const std::string& data);
+    void send_err_to_http(const std::string& err_msg);
 
     template<typename T_MSG>
     void send_msg_to_login(uint16_t cmd, const T_MSG& msg)

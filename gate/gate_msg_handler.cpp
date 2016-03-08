@@ -31,7 +31,7 @@ bool gate_msg_handler_t::handle_ac_connect_reply(const msg_buf_ptr& msg_buf)
     {
         log_error("virtual client connect to gate failed!");
         reply = "virtual client connect to gate failed!";    
-        env::server->send_msg_to_http(reply);
+        env::server->send_err_to_http(reply);
         return false;
     }
 
@@ -54,10 +54,13 @@ bool gate_msg_handler_t::handle_gc_enter_game_reply(const msg_buf_ptr& msg_buf)
     }
     else
     {
-        char buf[1024];
-        sprintf(buf, "enter game success! uid=%s", msg.user().uid().c_str());
+        char buf[256];
+        sprintf(buf, "{'code':0, 'msg':'nihao'}");
+        //sprintf(buf, "enter game success!<br> \
+                //`uid`=%s<br>", 
+                //msg.user().uid().c_str());
         std::string reply(buf);
-        env::server->send_msg_to_http(reply);
+        env::server->send_reply_to_http("gc_enter_game_reply", reply);
     }
 
     return true;

@@ -13,8 +13,9 @@ public:
     static bool init_msg_handler();
     static void handle_http_msg(const boost::property_tree::ptree& pt);
 
-public:
+private:
     static void handle_cl_login_request(const boost::property_tree::ptree& pt);
+    static void handle_ca_logout_request(const boost::property_tree::ptree& pt);
 
 private:
     static bool regist_msg_handler(std::string cmd, msg_handler_func func);
