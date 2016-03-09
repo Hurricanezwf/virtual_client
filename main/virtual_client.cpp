@@ -147,17 +147,19 @@ bool virtual_client_t::connect_to_login()
 void virtual_client_t::disconnect_with_login()
 {
     m_network.close_connect(env::cfg->connect_to_login.port);
-    m_connect_state &= (!connect_state_login_connected);
+    m_connect_state &= (~connect_state_login_connected);
     log_debug("virtual client disconnect with login");
 }
 
 bool virtual_client_t::is_connected_with_login()
 {
-    return (m_connect_state & connect_state_login_connected);
+    uint8_t tmp_state = m_connect_state;
+    return (tmp_state & connect_state_login_connected);
 }
 
 bool virtual_client_t::connect_to_gate(std::string& gate_ip, uint32_t gate_port)
 {
+    log_info("is_gate_connected=%d", m_connect_state);
      if (is_connected_with_gate())
      {
          disconnect_with_gate();
@@ -168,7 +170,7 @@ bool virtual_client_t::connect_to_gate(std::string& gate_ip, uint32_t gate_port)
      if (true == res)
      {
          m_connect_state |= connect_state_gate_connected;
-         log_debug("virtual client connect to gate success!");
+         log_debug("virtual client connect to gate success! m_connect_state=%d", m_connect_state);
          return true;
      }
 
@@ -180,13 +182,14 @@ void virtual_client_t::disconnect_with_gate()
 {
      //m_network.close_connect(m_gate_port, m_gate_connector.get_socket());
      m_network.close_connect(m_gate_port);
-     m_connect_state &= (!connect_state_gate_connected);
+     m_connect_state &= (~connect_state_gate_connected);
      log_debug("virtual client disconnect with gate. port=%d", m_gate_port);
 }
 
 bool virtual_client_t::is_connected_with_gate()
 {
-    return (m_connect_state & connect_state_gate_connected);
+    uint8_t tmp_state = m_connect_state;
+    return (tmp_state & connect_state_gate_connected);
 }
 
 
