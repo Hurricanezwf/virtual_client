@@ -159,7 +159,6 @@ bool virtual_client_t::is_connected_with_login()
 
 bool virtual_client_t::connect_to_gate(std::string& gate_ip, uint32_t gate_port)
 {
-    log_info("is_gate_connected=%d", m_connect_state);
      if (is_connected_with_gate())
      {
          disconnect_with_gate();

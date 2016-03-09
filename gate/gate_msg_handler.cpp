@@ -56,9 +56,6 @@ bool gate_msg_handler_t::handle_gc_enter_game_reply(const msg_buf_ptr& msg_buf)
     {
         char buf[256];
         sprintf(buf, "{'code':0, 'msg':'nihao'}");
-        //sprintf(buf, "enter game success!<br> \
-                //`uid`=%s<br>", 
-                //msg.user().uid().c_str());
         std::string reply(buf);
         env::server->send_reply_to_http("gc_enter_game_reply", reply);
     }
