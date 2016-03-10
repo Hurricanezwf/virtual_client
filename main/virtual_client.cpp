@@ -4,6 +4,10 @@
 #include "login/login_msg_handler.hpp"
 #include "gate/gate_msg_handler.hpp"
 
+#include <sstream>
+
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 
 USING_NS_NETWORK;
@@ -198,27 +202,47 @@ void virtual_client_t::network_send_msg(const network::tcp_socket_ptr& s, const 
 }
 
 
-void virtual_client_t::send_reply_to_http(const std::string& cmd, const std::string& data)
+void virtual_client_t::send_reply_to_http(const std::string& cmd, const boost::property_tree::ptree& data)
 {
-    char buf[1024];
-    if (data.empty())
+    std::stringstream reply;
+    try
     {
-        sprintf(buf, "{\"reply_code\":0, \"cmd\":\"%s\"}", cmd.c_str());
+        boost::property_tree::ptree pt;
+        pt.put("reply_code", 0);
+        pt.put("cmd", cmd.c_str());
+        pt.put_child("data", data);
+
+        boost::property_tree::json_parser::write_json(reply, pt);
     }
-    else
+    catch (boost::property_tree::ptree_error& ec)
     {
-        sprintf(buf, "{\"reply_code\":0, \"cmd\":\"%s\", \"data\":\"%s\"}", cmd.c_str(), data.c_str());
+        log_error("construct json failed! Message:%s", ec.what());
+        return;
     }
 
-    std::string msg(buf);
+    std::string msg = reply.str();
+    boost::algorithm::replace_all(msg, "\n", "");
     m_http_listener.reply_http_msg(msg);
 }
 
 void virtual_client_t::send_err_to_http(const std::string& err_msg)
 {
-    char buf[1024];
-    sprintf(buf, "{\"reply_code\":1,\"msg\":\"%s\"}", err_msg.c_str());
+    std::stringstream reply;
+    try
+    {
+        boost::property_tree::ptree pt;
+        pt.put("reply_code", 1);
+        pt.put("msg", err_msg.c_str());
 
-    std::string msg(buf);
+        boost::property_tree::json_parser::write_json(reply, pt);
+    }
+    catch (boost::property_tree::ptree_error& ec)
+    {
+        log_error("construct json failed! Message:%s", ec.what());
+        return;
+    }
+
+    std::string msg = reply.str();
+    boost::algorithm::replace_all(msg, "\n", "");
     m_http_listener.reply_http_msg(msg); 
 }

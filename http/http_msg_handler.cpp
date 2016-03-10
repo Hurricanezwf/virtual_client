@@ -8,6 +8,8 @@
 #include "protos/client.pb.h"
 #include "protos/common.pb.h"
 
+#include <boost/property_tree/ptree.hpp>
+
 
 http_msg_handler_t::http_msg_map http_msg_handler_t::m_register; 
 
@@ -54,7 +56,7 @@ void http_msg_handler_t::handle_cl_login_request(const boost::property_tree::ptr
     // connect to login
     if (false == env::server->connect_to_login())
     {
-        reply = "virtual client connect to login_server failed! \r\n"; 
+        reply = "virtual client connect to login_server failed!<br>"; 
         env::server->send_err_to_http(reply);
         return;
     }
@@ -72,7 +74,7 @@ void http_msg_handler_t::handle_ca_logout_request(const boost::property_tree::pt
 {
     env::server->disconnect_with_gate();
 
-    env::server->send_reply_to_http("", "");
+    env::server->send_reply_to_http("", pt); 
 }
 
 

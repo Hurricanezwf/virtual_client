@@ -12,6 +12,8 @@
 #include <string>
 #include <zdb.h>
 
+#include <boost/property_tree/ptree.hpp>
+
 class http_listener_t;
 class virtual_client_t
     : public common::server_base_t
@@ -37,7 +39,8 @@ public:
     
     void network_send_msg(const network::tcp_socket_ptr& s, const network::msg_buf_ptr& buf, bool is_sync = false);
 
-    void send_reply_to_http(const std::string& cmd, const std::string& data);
+    // 无错时用send_reply, 有错误消息时用send_err
+    void send_reply_to_http(const std::string& cmd, const boost::property_tree::ptree& data);
     void send_err_to_http(const std::string& err_msg);
 
     template<typename T_MSG>

@@ -26,7 +26,10 @@ bool login_msg_handler_t::handle_lc_login_reply(const msg_buf_ptr& msg_buf)
     if (msg.reply_code() != 0)
     {
         log_error("client login to login_server failed! ErrorCode=%d", msg.reply_code());
-        std::string reply("virtual client login to login_server failed!");
+
+        char buf[256];
+        sprintf(buf, "virtual client login to login_server failed! ErrorCode=%d", msg.reply_code());
+        std::string reply(buf);
         env::server->send_err_to_http(reply);
         return false;
     }

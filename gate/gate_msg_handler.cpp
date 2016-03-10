@@ -4,6 +4,8 @@
 #include "common/common_struct.hpp"
 
 #include <boost/lexical_cast.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 USING_NS_NETWORK;
 USING_NS_COMMON;
@@ -54,10 +56,25 @@ bool gate_msg_handler_t::handle_gc_enter_game_reply(const msg_buf_ptr& msg_buf)
     }
     else
     {
-        char buf[256];
-        sprintf(buf, "{'code':0, 'msg':'nihao'}");
-        std::string reply(buf);
-        env::server->send_reply_to_http("gc_enter_game_reply", reply);
+        proto::common::user_data user = msg.user();
+
+        boost::property_tree::ptree pt;
+        try 
+        {
+            pt.put("uid",           user.uid());
+            pt.put("name",          user.name());
+            pt.put("did",           user.did());
+            pt.put("create_time",   user.create_time());
+            pt.put("last_login_time", user.last_login_time());
+            pt.put("last_logout_time", user.last_logout_time());
+        }
+        catch (boost::property_tree::ptree_error& ec)
+        {
+            log_error("construct json failed! Message:%s", ec.what()); 
+            return false;
+        }
+
+        env::server->send_reply_to_http("gc_enter_game_reply", pt);
     }
 
     return true;
