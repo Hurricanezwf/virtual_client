@@ -42,6 +42,7 @@ public:
 public:
     // gate msg
     static bool handle_ac_connect_reply(const network::msg_buf_ptr& msg_buf);
+    static bool handle_ac_kick_user_notify(const network::msg_buf_ptr& msg_buf);
 
     // logic msg
     static bool handle_gc_enter_game_reply(const network::msg_buf_ptr& msg_buf);

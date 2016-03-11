@@ -17,6 +17,7 @@ bool gate_msg_handler_t::init_msg_handler()
 {
     // gate msg
     m_gate_msg_handle.register_func(op_cmd::ac_connect_reply,           handle_ac_connect_reply);
+    m_gate_msg_handle.register_func(op_cmd::ac_kick_user_notify,        handle_ac_kick_user_notify);
 
     // logic msg
     m_logic_msg_handle.register_func(op_cmd::gc_enter_game_reply,       handle_gc_enter_game_reply);
@@ -44,6 +45,13 @@ bool gate_msg_handler_t::handle_ac_connect_reply(const msg_buf_ptr& msg_buf)
 }
 
 
+bool gate_msg_handler_t::handle_ac_kick_user_notify(const msg_buf_ptr& msg_buf)
+{
+    env::server->disconnect_with_gate();
+    return true;
+}
+
+
 bool gate_msg_handler_t::handle_gc_enter_game_reply(const msg_buf_ptr& msg_buf)
 {
     PRE_S2C_MSG(proto::client::gc_enter_game_reply);
@@ -51,22 +59,38 @@ bool gate_msg_handler_t::handle_gc_enter_game_reply(const msg_buf_ptr& msg_buf)
     {
         log_warn("enter game failed! need to create new user");
         proto::client::cg_create_user_request req;
-        req.set_nickname(boost::lexical_cast<std::string>(env::server->get_uid()));
+        req.set_nickname(env::server->get_nickname());
         env::server->send_msg_to_gate(op_cmd::cg_create_user_request, req);
     }
     else
     {
-        proto::common::user_data user = msg.user();
-
         boost::property_tree::ptree pt;
         try 
         {
-            pt.put("uid",           user.uid());
-            pt.put("name",          user.name());
-            pt.put("did",           user.did());
-            pt.put("create_time",   user.create_time());
-            pt.put("last_login_time", user.last_login_time());
-            pt.put("last_logout_time", user.last_logout_time());
+            // user data
+            proto::common::user_data user = msg.user();
+            boost::property_tree::ptree user_data;
+            user_data.put("uid",           user.uid());
+            user_data.put("name",          user.name());
+            user_data.put("did",           user.did());
+            user_data.put("create_time",   user.create_time());
+            user_data.put("last_login_time", user.last_login_time());
+            user_data.put("last_logout_time", user.last_logout_time());
+            pt.put_child("user_data", user_data);
+
+            // item data
+            proto::common::item_data items = msg.item();
+            boost::property_tree::ptree item_data;
+            for (int32_t i = 0; i < items.item_list_size(); ++i)
+            {
+                proto::common::item_single item = items.item_list(i);
+                boost::property_tree::ptree item_single;
+                item_single.put("tid", item.tid());
+                item_single.put("num", item.num());
+                item_single.put("uid", item.uid());
+                item_data.push_back(std::make_pair("", item_single));
+            }
+            pt.put_child("item_data", item_data);
         }
         catch (boost::property_tree::ptree_error& ec)
         {
