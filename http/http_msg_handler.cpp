@@ -61,6 +61,8 @@ void http_msg_handler_t::handle_cl_login_request(const boost::property_tree::ptr
         return;
     }
 
+    env::server->set_nickname(guid);
+
     // send cl_login_request to login
     proto::client::cl_login_request login_req;
     login_req.set_ch_type((uint32_t)channel::CHANNEL_TYPE_TEST);

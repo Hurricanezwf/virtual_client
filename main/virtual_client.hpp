@@ -77,6 +77,9 @@ public:
     void set_uid(const uint64_t val) { m_uid = val; }
     uint64_t get_uid() const { return m_uid; }
 
+    void set_nickname(const std::string val) { m_nickname = val; }
+    std::string get_nickname() const { return m_nickname; }
+
     void set_gate_ip(const std::string val) { m_gate_ip = val; }
     std::string get_gate_ip() const { return m_gate_ip; }
 
@@ -91,6 +94,7 @@ private:
 
     std::string         m_guid;
     uint64_t            m_uid;
+    std::string         m_nickname;
     std::string         m_gate_ip;
     uint32_t            m_gate_port;
 };
