@@ -39,13 +39,17 @@ public:
         return true;
     };
 
-public:
+private:
     // gate msg
     static bool handle_ac_connect_reply(const network::msg_buf_ptr& msg_buf);
     static bool handle_ac_kick_user_notify(const network::msg_buf_ptr& msg_buf);
 
     // logic msg
     static bool handle_gc_enter_game_reply(const network::msg_buf_ptr& msg_buf);
+
+    // item relevant
+    static bool handle_gc_create_item_reply(const network::msg_buf_ptr& msg_buf);
+
 
 private:
     static network::server_msg_handler_t<op_cmd::AC_BEGIN, op_cmd::AC_END, msg_handler_func> m_gate_msg_handle;

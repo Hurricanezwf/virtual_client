@@ -22,6 +22,9 @@ bool gate_msg_handler_t::init_msg_handler()
     // logic msg
     m_logic_msg_handle.register_func(op_cmd::gc_enter_game_reply,       handle_gc_enter_game_reply);
 
+    // item relevant
+    m_logic_msg_handle.register_func(op_cmd::gc_create_item_reply,      handle_gc_create_item_reply);
+
     return true;
 }
 
@@ -101,5 +104,39 @@ bool gate_msg_handler_t::handle_gc_enter_game_reply(const msg_buf_ptr& msg_buf)
         env::server->send_reply_to_http("gc_enter_game_reply", pt);
     }
 
+    return true;
+}
+
+
+// item relevant
+bool gate_msg_handler_t::handle_gc_create_item_reply(const network::msg_buf_ptr& msg_buf)
+{
+    PRE_S2C_MSG(proto::client::gc_create_item_reply);    
+    if (msg.reply_code() > 0)
+    {
+        env::server->send_err_to_http("");
+    }
+    else
+    {
+        if (msg.has_create_item_data())
+        {
+            proto::common::item_single single = msg.create_item_data();
+            boost::property_tree::ptree pt;
+            try
+            {
+                pt.put("uid", single.uid());
+                pt.put("tid", single.tid());
+                pt.put("num", single.num());
+            }
+            catch (boost::property_tree::ptree_error& ec)
+            {
+                log_error("construct json failed! Message: %s", ec.what());
+                return false;
+            }
+            
+            env::server->send_reply_to_http("gc_create_item_reply", pt);
+        }
+    }
+    
     return true;
 }

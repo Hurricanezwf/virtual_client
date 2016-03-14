@@ -18,6 +18,9 @@ private:
     static void handle_ca_logout_request(const boost::property_tree::ptree& pt);
 
 private:
+    static void handle_cg_create_item_request(const boost::property_tree::ptree& pt);
+
+private:
     static bool regist_msg_handler(std::string cmd, msg_handler_func func);
     static msg_handler_func find_func(const std::string cmd);
     static bool is_msg_handler_exist(const std::string cmd);

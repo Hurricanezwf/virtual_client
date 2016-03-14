@@ -19,6 +19,9 @@ bool http_msg_handler_t::init_msg_handler()
     ret &= regist_msg_handler("cl_login_request",       handle_cl_login_request);
     ret &= regist_msg_handler("ca_logout_request",      handle_ca_logout_request);
 
+    // item relevant
+    ret &= regist_msg_handler("cg_create_item_request",    handle_cg_create_item_request);
+
     return ret;
 }
 
@@ -50,14 +53,23 @@ void http_msg_handler_t::handle_http_msg(const boost::property_tree::ptree& pt)
 // client->login  =================================================================
 void http_msg_handler_t::handle_cl_login_request(const boost::property_tree::ptree& pt)
 {
-    std::string guid = pt.get<std::string>("guid");
+    std::string guid;
+    try
+    {
+        guid = pt.get<std::string>("guid");
+    }
+    catch (boost::property_tree::ptree_error& ec)
+    {
+        log_error("Get guid error! Message:%s", ec.what());
+        env::server->send_err_to_http("Server Internal Error!<br>");
+        return;
+    }
 
     std::string reply;
     // connect to login
     if (false == env::server->connect_to_login())
     {
-        reply = "virtual client connect to login_server failed!<br>"; 
-        env::server->send_err_to_http(reply);
+        env::server->send_err_to_http("virtual client connect to login_server failed!<br>");
         return;
     }
 
@@ -76,8 +88,40 @@ void http_msg_handler_t::handle_ca_logout_request(const boost::property_tree::pt
 {
     env::server->disconnect_with_gate();
 
-    env::server->send_reply_to_http("", pt); 
+    boost::property_tree::ptree tmp_pt;
+    env::server->send_reply_to_http("", tmp_pt); 
 }
+
+
+// item relevant
+void http_msg_handler_t::handle_cg_create_item_request(const boost::property_tree::ptree& pt)
+{
+    uint32_t item_tid = 0;
+    uint32_t add_num  = 0;
+    try
+    {
+        item_tid = pt.get<uint32_t>("item_tid"); 
+        add_num  = pt.get<uint32_t>("add_num");
+    }
+    catch (boost::property_tree::ptree_error& ec)
+    {
+        log_error("Resolve data error! Message:%s", ec.what());
+        env::server->send_err_to_http("Server Internal Error!");
+        return;
+    }
+
+    proto::client::cg_create_item_request req;
+    req.set_item_tid(item_tid);
+    req.set_add_num(add_num);
+    env::server->send_msg_to_gate(op_cmd::cg_create_item_request, req);
+}
+
+
+
+
+
+
+
 
 
 // msg register =================================================================
