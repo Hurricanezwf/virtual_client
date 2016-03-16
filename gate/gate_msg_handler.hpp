@@ -49,6 +49,7 @@ private:
 
     // item relevant
     static bool handle_gc_create_item_reply(const network::msg_buf_ptr& msg_buf);
+    static bool handle_gc_cost_item_reply(const network::msg_buf_ptr& msg_buf);
 
 
 private:

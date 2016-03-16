@@ -24,6 +24,7 @@ bool gate_msg_handler_t::init_msg_handler()
 
     // item relevant
     m_logic_msg_handle.register_func(op_cmd::gc_create_item_reply,      handle_gc_create_item_reply);
+    m_logic_msg_handle.register_func(op_cmd::gc_cost_item_reply,        handle_gc_cost_item_reply);
 
     return true;
 }
@@ -131,6 +132,7 @@ bool gate_msg_handler_t::handle_gc_create_item_reply(const network::msg_buf_ptr&
             catch (boost::property_tree::ptree_error& ec)
             {
                 log_error("construct json failed! Message: %s", ec.what());
+                env::server->send_err_to_http("construct json failed!");
                 return false;
             }
             
@@ -138,5 +140,38 @@ bool gate_msg_handler_t::handle_gc_create_item_reply(const network::msg_buf_ptr&
         }
     }
     
+    return true;
+}
+
+bool gate_msg_handler_t::handle_gc_cost_item_reply(const network::msg_buf_ptr& msg_buf)
+{
+    PRE_S2C_MSG(proto::client::gc_cost_item_reply);
+    if (msg.reply_code() > 0)
+    {
+        env::server->send_err_to_http("");
+    }
+    else
+    {
+        if (msg.has_cost_item_data())
+        {
+            proto::common::item_single single = msg.cost_item_data();
+            boost::property_tree::ptree pt;
+            try
+            {
+                pt.put("uid", single.uid());
+                pt.put("tid", single.tid());
+                pt.put("num", single.num());
+            }
+            catch (boost::property_tree::ptree_error& ec)
+            {
+                log_error("construct json failed! Message: %s", ec.what());
+                env::server->send_err_to_http("construct json failed!");
+                return false;
+            }
+
+            env::server->send_reply_to_http("gc_cost_item_reply", pt);
+        }
+    }
+
     return true;
 }

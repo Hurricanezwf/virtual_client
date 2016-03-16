@@ -19,6 +19,7 @@ private:
 
 private:
     static void handle_cg_create_item_request(const boost::property_tree::ptree& pt);
+    static void handle_cg_cost_item_request(const boost::property_tree::ptree& pt);
 
 private:
     static bool regist_msg_handler(std::string cmd, msg_handler_func func);

@@ -221,7 +221,7 @@ void virtual_client_t::send_reply_to_http(const std::string& cmd, const boost::p
     }
 
     std::string msg = reply.str();
-    log_error("%s", msg.c_str());
+    log_warn("%s", msg.c_str());
     boost::algorithm::replace_all(msg, "\n", "");
     m_http_listener.reply_http_msg(msg);
 }

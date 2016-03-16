@@ -21,6 +21,7 @@ bool http_msg_handler_t::init_msg_handler()
 
     // item relevant
     ret &= regist_msg_handler("cg_create_item_request",    handle_cg_create_item_request);
+    ret &= regist_msg_handler("cg_cost_item_request",      handle_cg_cost_item_request);
 
     return ret;
 }
@@ -116,7 +117,27 @@ void http_msg_handler_t::handle_cg_create_item_request(const boost::property_tre
     env::server->send_msg_to_gate(op_cmd::cg_create_item_request, req);
 }
 
+void http_msg_handler_t::handle_cg_cost_item_request(const boost::property_tree::ptree& pt)
+{
+    std::string item_uid;
+    uint32_t    cost_num = 0;
+    try
+    {
+        item_uid = pt.get<std::string>("item_uid"); 
+        cost_num = pt.get<uint32_t>("cost_num");
+    }
+    catch (boost::property_tree::ptree_error& ec)
+    {
+        log_error("Resolve data error! Message:%s", ec.what());
+        env::server->send_err_to_http("Server Internal Error!");
+        return;
+    }
 
+    proto::client::cg_cost_item_request req;
+    req.set_item_uid(item_uid);
+    req.set_cost_num(cost_num);
+    env::server->send_msg_to_gate(op_cmd::cg_cost_item_request, req);
+}
 
 
 
